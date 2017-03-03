@@ -20,31 +20,26 @@ import j2html.TagCreator;
 import j2html.attributes.Attr;
 
 public class App extends Jooby {
-
 	{
 		use(new Hbm().classes(Feed.class));
 
 		get("/", (req) -> {
 			return require(UnitOfWork.class).apply(em -> {
 				final List<Feed> feeds = em.createQuery("from Feed", Feed.class).getResultList();
-				return TagCreator.html().with(
-						TagCreator.head().with(
-								TagCreator.title("My Feeds")
-						),
-						TagCreator.body().with(
-								TagCreator.table().with(feeds.stream().map(feed -> TagCreator.tr().with(
-										TagCreator.td(feed.getId().toString()),
-										TagCreator.td(feed.getUserId()),
-										TagCreator.td(feed.getUri()),
-										TagCreator.td(feed.getTitle())
-								)).collect(Collectors.toList()))
-						)
-				).render();
+				return TagCreator.html()
+						.with(TagCreator.head().with(TagCreator.title("My Feeds")),
+								TagCreator.body().with(TagCreator.table().with(feeds.stream()
+										.map(feed -> TagCreator.tr().with(TagCreator.td(feed.getId().toString()),
+												TagCreator.td(feed.getUserId()), TagCreator.td(feed.getUri()),
+												TagCreator.td(feed.getTitle())))
+										.collect(Collectors.toList()))))
+						.render();
 			});
 
 		});
 
-		use(new Auth().client(conf -> new FacebookClient(conf.getString("facebook.key"), conf.getString("facebook.secret"))));
+		use(new Auth()
+				.client(conf -> new FacebookClient(conf.getString("facebook.key"), conf.getString("facebook.secret"))));
 
 		post("/feeds", req -> {
 			final FacebookProfile profile = require(FacebookProfile.class);
@@ -65,25 +60,20 @@ public class App extends Jooby {
 			final FacebookProfile profile = require(FacebookProfile.class);
 
 			return require(UnitOfWork.class).apply(em -> {
-				final List<Feed> feeds = em.createQuery("from Feed where userId = :userId", Feed.class).setParameter("userId", profile.getId()).getResultList();
-				return TagCreator.html().with(
-						TagCreator.head().with(
-								TagCreator.title("My Feeds")
-						),
-						TagCreator.body().with(
-								TagCreator.h1(String.format("Welcome %s!", profile.getDisplayName())),
-								TagCreator.form().attr(Attr.ENCTYPE, "application/x-www-form-urlencoded").withAction("/feeds").withMethod("POST").with(
-										TagCreator.input().withType("text").withName("location"),
-										TagCreator.input().withType("submit").withName("add")
-								),
-								TagCreator.table().with(feeds.stream().map(feed -> TagCreator.tr().with(
-										TagCreator.td(feed.getId().toString()),
-										TagCreator.td(feed.getUserId()),
-										TagCreator.td(feed.getUri()),
-										TagCreator.td(feed.getTitle())
-								)).collect(Collectors.toList()))
-						)
-				).render();
+				final List<Feed> feeds = em.createQuery("from Feed where userId = :userId", Feed.class)
+						.setParameter("userId", profile.getId()).getResultList();
+				return TagCreator.html().with(TagCreator.head().with(TagCreator.title("My Feeds")),
+						TagCreator.body().with(TagCreator.h1(String.format("Welcome %s!", profile.getDisplayName())),
+								TagCreator.form().attr(Attr.ENCTYPE, "application/x-www-form-urlencoded")
+										.withAction("/feeds").withMethod("POST").with(
+												TagCreator.input().withType("text").withName("location"),
+												TagCreator.input().withType("submit").withName("add")),
+								TagCreator.table().with(feeds.stream()
+										.map(feed -> TagCreator.tr().with(TagCreator.td(feed.getId().toString()),
+												TagCreator.td(feed.getUserId()), TagCreator.td(feed.getUri()),
+												TagCreator.td(feed.getTitle())))
+										.collect(Collectors.toList()))))
+						.render();
 			});
 
 		});
